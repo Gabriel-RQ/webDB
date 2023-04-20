@@ -63,14 +63,14 @@ const request = objectStore.add({ color: "red", model: "Car Brand" });
 request.onsuccess = () => console.log("Added!");
 request.onerror = () => console.log("Oops! Not added :(");
 
-// or use the utility to simple add...
+// or use the utility to simply add...
 const result = await db.add("cars_object_store", { color: "blue", model: "Car brand 2"});
 
 if (result) console.log("Added! Key: ", result);
 else console.log("Oops! Not addedd :(");
 // and you can do the same for `put()`
 
-// you can also need to `get()` or `getAll()` data...
+// you may also need to `get()` or `getAll()` data...
 const data = await db.get("cars_object_store", 1);
 
 if (data) console.log("Car 1: ", data);
