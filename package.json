@@ -1,0 +1,29 @@
+{
+  "name": "@gabrielrq/web-db",
+  "version": "1.0.0",
+  "description": "Promise wrapper for IndexedDB.",
+  "type": "module",
+  "main": "dist/db.js",
+  "scripts": {
+    "build": "npx tsc"
+  },
+  "types": "@types/src/db.d.ts",
+  "keywords": [
+    "IndexedDB",
+    "Async",
+    "Promises"
+  ],
+  "author": "Gabriel RQ",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabriel-RQ/webDB.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Gabriel-RQ/webDB/issues"
+  },
+  "homepage": "https://github.com/Gabriel-RQ/webDB#readme"
+}
