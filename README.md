@@ -35,7 +35,7 @@ const db = new WebDB("database", 1, {
             keyPath: "color",
           },
         ],
-        // tells WebDB wether or not to recreate this object store each time the database gets updated (version change, for example)
+        // tells WebDB whether or not to recreate this object store each time the database gets updated (version change, for example)
         recreate: false, // default
       },
     },
