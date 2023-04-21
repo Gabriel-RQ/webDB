@@ -109,7 +109,7 @@ export class WebDB {
     store: string,
     query: IDBValidKey | IDBKeyRange,
     index?: string
-  ): Promise<T | undefined> {
+  ): Promise<T | DOMException> {
     const transaction = await this.transaction(store);
     const objectStore = transaction.objectStore(store);
     const idx = index ? objectStore.index(index) : undefined;
@@ -118,7 +118,7 @@ export class WebDB {
       const request = idx ? idx.get(query) : objectStore.get(query);
 
       request.onsuccess = () => resolve(request.result as T);
-      request.onerror = () => reject(undefined);
+      request.onerror = () => reject(request.error);
     });
   }
 
@@ -129,7 +129,7 @@ export class WebDB {
     store: string,
     query?: IDBValidKey | IDBKeyRange,
     index?: string
-  ): Promise<T[] | undefined> {
+  ): Promise<T[] | DOMException> {
     const transaction = await this.transaction(store);
     const objectStore = transaction.objectStore(store);
     const idx = index ? objectStore.index(index) : undefined;
@@ -138,19 +138,19 @@ export class WebDB {
       const request = idx ? idx.getAll(query) : objectStore.getAll(query);
 
       request.onsuccess = () => resolve(request.result as T[]);
-      request.onerror = () => reject(undefined);
+      request.onerror = () => reject(request.error);
     });
   }
 
   /**
-   * Abstracts `IDBObjectStore.add()`. Returns a promise that resolves to the key of the inserted record if successful, and false if
+   * Abstracts `IDBObjectStore.add()`. Returns a promise that resolves to the key of the inserted record if successful, or resolves to the the transaction's error if
    * unsuccessful. Fails if an existing record with the same key exists.
    */
   async add<T>(
     store: string,
     data: T,
     key?: IDBValidKey | undefined
-  ): Promise<IDBValidKey | false> {
+  ): Promise<IDBValidKey | DOMException> {
     return new Promise(async (resolve, reject) => {
       const transaction = await this.transaction(store, "readwrite");
       const objectStore = transaction.objectStore(store);
@@ -158,19 +158,19 @@ export class WebDB {
       const k = objectStore.add(data, key);
 
       transaction.oncomplete = () => resolve(k.result);
-      transaction.onerror = () => reject(false);
+      transaction.onerror = () => reject(transaction.error);
     });
   }
 
   /**
    * Abstracts `IDBObjectStore.put()`. Returns a promise that resolves to the key of the inserted record if successful,
-   * and false if unsuccessful. Replaces existing records with the same key.
+   * and rejects to the transaction's error if unsuccessful. Replaces existing records with the same key.
    */
   async put<T>(
     store: string,
     data: T,
     key?: IDBValidKey | undefined
-  ): Promise<IDBValidKey | false> {
+  ): Promise<IDBValidKey | DOMException> {
     return new Promise(async (resolve, reject) => {
       const transaction = await this.transaction(store, "readwrite");
       const objectStore = transaction.objectStore(store);
@@ -178,28 +178,34 @@ export class WebDB {
       const k = objectStore.put(data, key);
 
       transaction.oncomplete = () => resolve(k.result);
-      transaction.onerror = () => reject(false);
+      transaction.onerror = () => reject(transaction.error);
     });
   }
 
   /**
    * Clears all the data in the Object Store(s) passed as argument.
+   * Returns a promise that resolves to `true` if successful, or rejects to the transaction's error.
    */
-  async clear(storeNames: string | string[]) {
-    const transaction = await this.transaction(storeNames, "readwrite");
+  async clear(storeNames: string | string[]): Promise<true | DOMException> {
+    return new Promise(async (resolve, reject) => {
+      const transaction = await this.transaction(storeNames, "readwrite");
 
-    if (Array.isArray(storeNames)) {
-      storeNames.forEach((name) => {
-        const objectStore = transaction.objectStore(name);
-        objectStore.clear();
-      });
-    } else {
-      const objectStore = transaction.objectStore(storeNames).clear();
-    }
+      if (Array.isArray(storeNames)) {
+        storeNames.forEach((name) => {
+          const objectStore = transaction.objectStore(name);
+          objectStore.clear();
+        });
+      } else {
+        const objectStore = transaction.objectStore(storeNames).clear();
+      }
+
+      transaction.oncomplete = () => resolve(true);
+      transaction.onerror = () => reject(transaction.error);
+    });
   }
 
   /**
-   * Abstracts the `IDBObjectStore.delete()` method, returning a promise that resolves to `true` if successful, or rejects to `false`;
+   * Abstracts the `IDBObjectStore.delete()` method, returning a promise that resolves to `true` if successful, or rejects to the request's error.;
    */
   async delete(
     store: string,
@@ -211,7 +217,7 @@ export class WebDB {
       const request = objectStore.delete(query);
 
       request.onsuccess = () => resolve(true);
-      request.onerror = () => reject(false);
+      request.onerror = () => reject(request.error);
     });
   }
 }
